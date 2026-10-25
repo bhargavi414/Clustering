@@ -107,6 +107,18 @@ void test_model(
             << inertia << '\n';
 }
 
+int load_k(const string& filename) {
+    string kfile = filename;
+    kfile.replace(kfile.rfind(".csv"), 4, "_k.txt");
+
+    ifstream file(kfile);
+    int k;
+    if (!(file >> k))
+        throw runtime_error("Cannot read k from " + kfile);
+
+    return k;
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         cerr << "Usage: " << argv[0]
@@ -124,11 +136,10 @@ int main(int argc, char* argv[]) {
     results << "dataset,algorithm,points,dimensions,k,"
                "runtime_ms,inertia\n";
 
-    const int k = 5;
-
     for (int i = 1; i < argc; i++) {
         try {
             vector<Point> points = load_csv(argv[i]);
+            int k = load_k(argv[i]);
 
             if (points.empty() ||
                 points.size() < static_cast<size_t>(k)) {

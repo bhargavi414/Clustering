@@ -1,0 +1,9 @@
+# Compiled executables
+*.exe
+
+# Generated datasets
+data/*_points.csv
+data/*_points_k.txt
+
+# Experiment results
+results.csv

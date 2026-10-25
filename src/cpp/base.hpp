@@ -18,7 +18,7 @@ struct Cluster{
     vector<Point> points;
 };
 
-double euclidean_distance(const Point& a, const Point& b){
+inline double euclidean_distance(const Point& a, const Point& b){
     double dist = 0.0;
     for(int i = 0; i < a.coords.size(); i++){
         dist += (a.coords[i] - b.coords[i]) * (a.coords[i] - b.coords[i]);
@@ -27,7 +27,7 @@ double euclidean_distance(const Point& a, const Point& b){
     return sqrt(dist);
 }
 
-void export_clusters_to_csv (const string& filename, const vector<Point>& points){
+inline void export_clusters_to_csv (const string& filename, const vector<Point>& points){
     ofstream file(filename);
 
     if(file.is_open() == false){

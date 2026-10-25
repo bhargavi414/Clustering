@@ -1,27 +1,63 @@
 #include "kmeans_openMP.hpp"
 #include <random>
 #include <limits>
+#include<algorithm>
 #include <omp.h>
 
-void KMeansopenMP::assign_clusters(vector<Point>& x){
-    // Clear previously assigned points in clusters
-    for (int i = 0; i < k; i++){
+void KMeansopenMP::assign_clusters(vector<Point>& x) {
+    for (int i = 0; i < k; i++) {
         clusters[i].points.clear();
     }
 
-    for (auto& point : x){
-        vector<double> dist;
-        for (int i = 0; i < k; i++){
-            dist.push_back(euclidean_distance(point, clusters[i].center));
-        }
+    int n = x.size();
+    int num_threads = omp_get_max_threads();
 
-        int curr_cluster = min_element(dist.begin(), dist.end()) - dist.begin();
-        point.cluster_id = curr_cluster;
-        clusters[curr_cluster].points.push_back(point);
+    //Thread buckets
+    vector<vector<vector<Point>>> local_points(
+        num_threads, vector<vector<Point>>(k)
+    );
+
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        auto& my_points = local_points[tid];
+
+        #pragma omp for schedule(static)
+        for (int i = 0; i < n; i++) {
+            int curr_cluster = 0;
+            double best_dist = euclidean_distance(
+                x[i], clusters[0].center
+            );
+
+            for (int c = 1; c < k; c++) {
+                double d = euclidean_distance(
+                    x[i], clusters[c].center
+                );
+
+                if (d < best_dist) {
+                    best_dist = d;
+                    curr_cluster = c;
+                }
+            }
+
+            x[i].cluster_id = curr_cluster;
+            my_points[curr_cluster].push_back(x[i]);
+        }
+    }
+
+    //Mergin all the threads
+    for (int tid = 0; tid < num_threads; tid++) {
+        for (int c = 0; c < k; c++) {
+            auto& src = local_points[tid][c];
+            auto& dest = clusters[c].points;
+
+            dest.insert(dest.end(), src.begin(), src.end());
+        }
     }
 }
 
 void KMeansopenMP::update_clusters(){
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < k; i++){
         const auto& pts = clusters[i].points;
         if (!pts.empty()){
@@ -45,14 +81,23 @@ void KMeansopenMP::update_clusters(){
 }
 
 vector<int> KMeansopenMP::predict_clusters(const vector<Point>& x){
-    vector<int> pred;
-    for (const auto& point : x){
-        vector<double> dist;
-        for (int i = 0; i < k; ++i){
-            dist.push_back(euclidean_distance(point, clusters[i].center));
+    vector<int> pred(x.size());
+    int n = x.size();
+    #pragma omp parallel for schedule(static)
+    for (int i = 0; i < n; i++) {
+        int best_cluster = 0;
+        double best_dist = euclidean_distance(x[i], clusters[0].center);
+
+        for (int c = 1; c < k; c++) {
+            double d = euclidean_distance(x[i], clusters[c].center);
+
+            if (d < best_dist) {
+                best_dist = d;
+                best_cluster = c;
+            }
         }
-        int best_cluster = min_element(dist.begin(), dist.end()) - dist.begin();
-        pred.push_back(best_cluster);
+
+        pred[i] = best_cluster;
     }
     return pred;
 }

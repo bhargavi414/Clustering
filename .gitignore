@@ -1,0 +1,8 @@
+# Executables
+*.exe
+
+# Generated datasets
+data/*_points.csv
+
+# Results
+results.csv

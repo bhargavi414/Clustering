@@ -1,9 +1,15 @@
 # Compiled executables
 *.exe
+benchmark_paper
+benchmark_paper_omp
 
+__pycache__/
 # Generated datasets
 data/*_points.csv
 data/*_points_k.txt
 
 # Experiment results
 results.csv
+paper_quality.csv
+paper_scaling.csv
+paper_disk.csv

@@ -7,6 +7,7 @@ class KMeansBase{
 public:
     int k;
     int max_iters;
+    unsigned seed=0; // random seed (change this to get different results)
     map<int, Cluster> clusters;
 
     //it is a virtual function so that other child class (Kmeans++) can override this function

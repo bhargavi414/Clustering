@@ -7,7 +7,7 @@
 void KMeansBase::initialise_centers(const vector<Point>& x) {
     if (x.empty() or k <= 0) return;
 
-    mt19937 gen(10);
+    mt19937 gen(seed);
     vector<int> indices(x.size());
 
     iota(indices.begin(), indices.end(), 0);

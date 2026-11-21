@@ -1,0 +1,13 @@
+dataset,algorithm,median_seed_cost_div_1e4,median_final_cost_div_1e4
+R = 1,Random,23.0,14.5
+R = 1,KMeans++,23.2,14.5
+R = 1,KMeans||_l=0.5k_r=5,22.1,14.5
+R = 1,KMeans||_l=2k_r=5,22.0,14.5
+R = 10,Random,69.8,25.5
+R = 10,KMeans++,49.7,23.2
+R = 10,KMeans||_l=0.5k_r=5,40.0,19.7
+R = 10,KMeans||_l=2k_r=5,40.9,20.4
+R = 100,Random,521.3,185.1
+R = 100,KMeans++,112.3,52.0
+R = 100,KMeans||_l=0.5k_r=5,50.2,25.5
+R = 100,KMeans||_l=2k_r=5,62.6,31.6

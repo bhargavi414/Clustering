@@ -31,6 +31,8 @@ src/
     kmeans_openMP.*          Lloyd's k-means with OpenMP (per-thread point buckets)
     test_kmeans.cpp          K-Means vs K-Means++ (runtime, inertia)
     benchmark_paper.cpp      k-means|| benchmark (quality + scaling)
+    main_viz.py
+    visualization.py         evaluation and plotting 
 results/                     graphs and summary tables
 ```
 
@@ -122,6 +124,52 @@ Replaces missing values with the column mean and (optionally) applies z-score st
 Write the number of clusters into `data/name_points_k.txt` to use the dataset with the benchmarks.
 
 ---
+
+### 5. Generate Parallel K-Means Visualization
+
+First, generate the Gaussian mixture visualizations:
+
+```bash
+python3 data/gauss_mixture_viz.py
+```
+
+Compile the parallel K-Means visualization program.
+
+**Linux / WSL / Windows (MinGW):**
+
+```bash
+g++ -O2 -std=c++17 -fopenmp -Isrc/cpp \
+src/cpp/run_kmeans_parallel.cpp \
+src/cpp/kmeans_base.cpp \
+src/cpp/kmeans_parallel.cpp \
+-o run_kmeans_parallel
+```
+
+**macOS (Homebrew LLVM):**
+
+```bash
+/opt/homebrew/opt/llvm/bin/clang++ -O2 -std=c++17 \
+-Xpreprocessor -fopenmp \
+-I/opt/homebrew/opt/libomp/include \
+-L/opt/homebrew/opt/libomp/lib -lomp \
+-Isrc/cpp \
+src/cpp/run_kmeans_parallel.cpp \
+src/cpp/kmeans_base.cpp \
+src/cpp/kmeans_parallel.cpp \
+-o run_kmeans_parallel
+```
+
+Run the visualization script:
+
+```bash
+python3 src/main_viz.py
+```
+
+On Windows:
+
+```bash
+py src/main_viz.py
+```
 
 ## References
 

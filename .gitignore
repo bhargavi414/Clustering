@@ -13,3 +13,14 @@ results.csv
 paper_quality.csv
 paper_scaling.csv
 paper_disk.csv
+
+# Visualization pipeline
+run_kmeans_parallel
+run_kmeans_parallel.exe
+data/*_labels.csv
+data/*_ground_truth.csv
+results/clustered/
+
+# Environment / OS
+venv/
+.DS_Store

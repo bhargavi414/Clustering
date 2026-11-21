@@ -4,7 +4,7 @@
 void KMeansPlusPlus::initialise_centers(const vector<Point>& x){
     if (x.empty()) return;
     int n = x.size();
-    mt19937 gen(42);
+    mt19937 gen(seed);
 
     uniform_int_distribution<> dis(0, n - 1);
     clusters[0] = Cluster{x[dis(gen)], {}};

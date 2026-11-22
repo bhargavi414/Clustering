@@ -95,7 +95,7 @@ def seed_num(path):
     return int(m.group(1)) if m else -1
 
 def assignment_files(dataset):
-    return sorted(RESULTS.glob(f"{dataset}_seed_*_clustered.csv"), key=seed_num)
+    return sorted((RESULTS / "clustered" / "repeated").glob(f"{dataset}_seed_*_clustered.csv"), key=seed_num)
 
 def load_assignments(dataset):
     result = []

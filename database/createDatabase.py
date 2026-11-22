@@ -18,12 +18,16 @@ def connect_db():
 
 
 def insert_results():
+    if not CSV_FILE.exists():
+        raise FileNotFoundError(f"CSV not found: {CSV_FILE}")
+
     with connect_db() as conn:
         with conn.cursor() as cur:
             with open(CSV_FILE, newline="") as file:
                 reader = csv.DictReader(file)
 
                 for row in reader:
+
                     # Insert dataset
                     cur.execute("""
                         INSERT INTO datasets
@@ -36,13 +40,13 @@ def insert_results():
                         RETURNING dataset_id;
                     """, (
                         row["dataset"],
-                        int(row["num_points"]),
+                        int(row["points"]),
                         int(row["dimensions"])
                     ))
 
                     dataset_id = cur.fetchone()[0]
 
-                    # Insert experiment run
+                    #insert experiment run
                     cur.execute("""
                         INSERT INTO experiment_runs
                             (dataset_id, algorithm, seed, k)
@@ -75,12 +79,12 @@ def insert_results():
                             davies_bouldin = EXCLUDED.davies_bouldin;
                     """, (
                         run_id,
-                        float(row["runtime_ms"]) if row["runtime_ms"] else None,
-                        float(row["inertia"]),
-                        float(row["ari"]),
-                        float(row["nmi"]),
-                        float(row["silhouette"]),
-                        float(row["davies_bouldin"])
+                        float(row["runtime_ms"]) if row["runtime_ms"].strip() else None,
+                        float(row["Inertia"]),
+                        float(row["ARI"]),
+                        float(row["NMI"]),
+                        float(row["Silhouette"]),
+                        float(row["Davies_Bouldin"])
                     ))
 
     print("Results successfully inserted into PostgreSQL!")
@@ -88,3 +92,4 @@ def insert_results():
 
 if __name__ == "__main__":
     insert_results()
+    

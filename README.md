@@ -8,6 +8,8 @@ initialisation (k-means||), benchmarked against the Scalable K-Means++ paper.
 | K-Means (random start) and K-Means++ | `kmeans_base.*`, `kmeans_plus_plus.*`, `test_kmeans.cpp` | — |
 | **k-means\|\|** (scalable initialisation) + benchmark | `kmeans_parallel.*`, `benchmark_paper.cpp`, `data/gauss_mixture.py`, `src/plot_results.py` | Bahmani et al., *Scalable K-Means++*, PVLDB 5(7), 2012 |
 | Multi-threaded Lloyd's k-means (OpenMP) | `kmeans_openMP.*` | — |
+| Experimental evaluation | `src/evaluation.py` | — |
+| PostgreSQL integration | `database/schema.sql`, `database/queries.sql`, `database/createDatabase.py` | — |
 
 k-means has two phases: ① choose starting centers, ② repeat assign + update (Lloyd's iterations).
 **k-means\|\|** makes phase ① parallel-friendly; the **OpenMP** versions make phase ② parallel.
@@ -20,9 +22,11 @@ k-means has two phases: ① choose starting centers, ② repeat assign + update 
 data/
   db.py                      blob datasets (small, medium, large, high_dim, overlap)
   gauss_mixture.py           GaussMixture dataset from the Scalable K-Means++ paper
+  gauss_viz_datasets.py      datasets for experimental evaluation and visualization
 src/
   preprocessing.py           missing values (column mean) + z-score standardisation
   plot_results.py            graphs for the k-means|| benchmark
+  evaluation.py              repeated experiments and clustering quality evaluation
   cpp/
     base.hpp                 Point, Cluster, euclidean_distance
     kmeans_base.*            k-means, random start + Lloyd (sequential)
@@ -32,8 +36,15 @@ src/
     test_kmeans.cpp          K-Means vs K-Means++ (runtime, inertia)
     benchmark_paper.cpp      k-means|| benchmark (quality + scaling)
     main_viz.py
-    visualization.py         evaluation and plotting 
-results/                     graphs and summary tables
+    visualization.py         evaluation and plotting
+    run_kmeans_parallel.cpp  parallel K-Means executable
+database/
+  schema.sql                 PostgreSQL tables and constraints
+  queries.sql                SQL queries for experimental result analysis
+  createDatabase.py          imports evaluation results into PostgreSQL
+results/                     graphs, summary tables and evaluation CSV files
+  evaluation_runs.csv        individual experimental run results
+  evaluation_summary.csv     median and IQR summary of evaluation metrics
 ```
 
 ---
@@ -42,12 +53,13 @@ results/                     graphs and summary tables
 
 **Windows (sequential builds):**
 ```bash
-py -m pip install numpy scikit-learn matplotlib
+py -m pip install numpy scikit-learn matplotlib psycopg2-binary
 ```
 
 **WSL / Linux (needed for OpenMP builds):**
 ```bash
 sudo apt install -y build-essential python3-numpy python3-sklearn python3-matplotlib
+pip install psycopg2-binary
 ```
 On WSL the project folder is under `/mnt/<drive>/...`; use `python3` instead of `py`.
 
@@ -170,6 +182,69 @@ On Windows:
 ```bash
 py src/main_viz.py
 ```
+
+---
+
+## 6. Experimental Evaluation
+
+Evaluates the parallel K-Means implementation across five datasets, with 10 runs per dataset (seeds 10–19), giving 50 experimental runs.
+
+| Dataset | n | d | k |
+|---|---:|---:|---:|
+| gaussviz_n3000_R2 | 3,000 | 15 | 10 |
+| gaussviz_n15000_R4 | 15,000 | 15 | 10 |
+| gaussviz_n50000_R8 | 50,000 | 15 | 10 |
+| viz_iris | 150 | 4 | 3 |
+| viz_moons | 3,000 | 2 | 2 |
+
+Algorithm configuration: k-means|| with ℓ = 2k and r = 5.
+
+Metrics collected:
+- Runtime (ms)
+- Adjusted Rand Index (ARI)
+- Normalized Mutual Information (NMI)
+- Inertia
+- Silhouette Score
+- Davies-Bouldin Index
+
+Results are summarized using the median and interquartile range (IQR) across repeated runs.
+
+```bash
+python3 data/gauss_viz_datasets.py
+python3 src/evaluation.py
+```
+
+Outputs:
+- `results/evaluation_runs.csv` — individual results for all 50 runs.
+- `results/evaluation_summary.csv` — median and IQR for each dataset and metric.
+
+---
+
+## 7. PostgreSQL Integration
+
+Experimental results are stored in PostgreSQL for structured storage and SQL-based analysis.
+
+The database consists of three tables:
+
+- `datasets` — dataset name, number of points and dimensions.
+- `experiment_runs` — dataset, algorithm configuration, random seed and number of clusters.
+- `run_metrics` — runtime, inertia, ARI, NMI, Silhouette Score and Davies-Bouldin Index.
+
+The schema uses primary keys, foreign keys, uniqueness constraints and an index on dataset and algorithm.
+
+Database files:
+- `database/schema.sql` — creates the database tables and constraints.
+- `database/createDatabase.py` — reads `evaluation_runs.csv` and inserts experiment records and metrics.
+- `database/queries.sql` — SQL queries for analysing stored experimental results.
+
+After creating the PostgreSQL database and configuring the connection through environment variables, execute the schema and import the results:
+
+```bash
+psql -d kmeans_project -f database/schema.sql
+python3 database/createDatabase.py
+```
+
+The import script uses upsert operations to handle existing experiment records.
 
 ## References
 

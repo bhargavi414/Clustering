@@ -28,7 +28,7 @@ plt.rcParams.update({
 OUT.mkdir(parents=True, exist_ok=True)
 
 def save(fig, name):
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
     fig.savefig(OUT / name, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print("Saved:", OUT / name)
@@ -48,9 +48,10 @@ def metric_plot(column, title, filename, ylim=None):
     ax.set_xticks(range(len(ORDER)), [DATASETS[d] for d in ORDER],
                   rotation=16, ha="right")
     ax.set_ylabel(column.replace("_", " "))
-    ax.set_title(title, loc="left", weight="bold")
-    ax.text(0, 1.015, "Dots = individual runs | Diamond and whiskers = median and IQR",
-            transform=ax.transAxes, fontsize=8.5, color="#555")
+    ax.set_title(title, loc="left", weight="bold", pad=20)
+    fig.text(0.5, 0.965,
+             "Dots = individual runs | Diamond and whiskers = median and IQR",
+             ha="center", va="top", fontsize=8.5, color="#555")
     if ylim:
         ax.set_ylim(*ylim)
     save(fig, filename)
@@ -120,7 +121,7 @@ def stability_plot(dataset, assignments):
     im = ax.imshow(mat, vmin=0, vmax=1, cmap="viridis")
     ax.set_xticks(range(len(seeds)), seeds); ax.set_yticks(range(len(seeds)), seeds)
     ax.set_xlabel("Seed"); ax.set_ylabel("Seed")
-    ax.set_title(f"Seed-to-seed assignment stability\\n{DATASETS[dataset]}",
+    ax.set_title(f"Seed-to-seed assignment stability\n{DATASETS[dataset]}",
                  loc="left", weight="bold")
     for r in range(len(seeds)):
         for c in range(len(seeds)):
@@ -145,7 +146,7 @@ def cluster_size_plot(dataset, assignments):
     ax.set_xlabel("Cluster rank (largest to smallest)")
     ax.set_ylabel("Points in cluster (%)")
     ax.set_xticks(range(1, max_k+1))
-    ax.set_title(f"Cluster-size balance across seeds\\n{DATASETS[dataset]}",
+    ax.set_title(f"Cluster-size balance across seeds\n{DATASETS[dataset]}",
                  loc="left", weight="bold")
     ax.legend(ncol=2, fontsize=7.5, frameon=False)
     save(fig, f"cluster_sizes_{dataset}.png")
